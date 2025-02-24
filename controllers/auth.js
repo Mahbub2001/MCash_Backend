@@ -48,9 +48,6 @@ exports.register = async (req, res) => {
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    res.status(200).send({ message: "Login successful", accessToken });
-
     res.status(201).send({ message: "Registration successful", accessToken });
   } catch (err) {
     res.status(500).send({ message: "Internal server error" });

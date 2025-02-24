@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const verifyJWT = require('../middleware/verifyjwt');
+const verifyJWT = require('../middleware/verifyJWT');
 const agentController = require('../controllers/agent');
 
 router.use(verifyJWT);
