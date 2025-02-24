@@ -1,20 +1,30 @@
+// middleware/verifyJWT.js
 const jwt = require('jsonwebtoken');
-const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET; 
-
+const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET;
+const renewToken = require('../utils/renewToken');
 const verifyJWT = (req, res, next) => {
-  const token = req.cookies.accessToken;
+  const accessToken = req.cookies.accessToken;
 
-  if (!token) {
-    return res.status(401).send({ message: "Unauthorized access" });
-  }
-
-  jwt.verify(token, ACCESS_TOKEN_SECRET, function (err, decoded) {
-    if (err) {
-      return res.status(403).send({ message: "Forbidden access" });
+  if (!accessToken) {
+    if (renewToken(req, res)) {
+      next();
+    } else {
+      return res.status(401).send({ valid: false, message: "Unauthorized" });
     }
-    req.decoded = decoded;
-    next();
-  });
+  } else {
+    jwt.verify(accessToken, ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        if (renewToken(req, res)) {
+          next();
+        } else {
+          return res.status(403).send({ valid: false, message: "Invalid or expired access token" });
+        }
+      } else {
+        req.decoded = decoded;
+        next();
+      }
+    });
+  }
 };
 
 module.exports = verifyJWT;

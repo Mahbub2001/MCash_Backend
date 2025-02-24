@@ -10,8 +10,8 @@ const userSchema = new mongoose.Schema({
   balance: { type: Number, default: 0 },
   role: { type: String, enum: ['user', 'agent', 'admin'], default: 'user' },
   isBlocked: { type: Boolean, default: false },
-  isApproved: { type: Boolean, default: false },
-  token: { type: String, default: null }, 
+  isApproved: { type: Boolean, default: false }, 
+  refreshToken: { type: String, default: null }, 
   transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }]
 });
 
