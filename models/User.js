@@ -7,9 +7,11 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   pin: { type: String, required: true },
   nid: { type: String, required: true, unique: true },
-  balance: { type: Number, default: 40 },
+  balance: { type: Number, default: 0 },
   role: { type: String, enum: ['user', 'agent', 'admin'], default: 'user' },
   isBlocked: { type: Boolean, default: false },
+  isApproved: { type: Boolean, default: false },
+  token: { type: String, default: null }, 
   transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }]
 });
 
