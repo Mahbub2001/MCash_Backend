@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const verifyJWT = require('../middleware/verifyjwt');
+const verifyJWT = require('../middleware/verifyJWT');
 const userController = require('../controllers/user');
-// router.use(verifyJWT);
+router.use(verifyJWT);
 
 router.post('/send-money', userController.sendMoney);
 router.post('/cash-out', userController.cashOut);

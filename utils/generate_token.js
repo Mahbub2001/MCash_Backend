@@ -1,4 +1,3 @@
-// utils/generate_token.js
 const jwt = require('jsonwebtoken');
 const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;

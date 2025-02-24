@@ -1,4 +1,3 @@
-// middleware/verifyJWT.js
 const jwt = require('jsonwebtoken');
 const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET;
 const renewToken = require('../utils/renewToken');
