@@ -50,7 +50,7 @@ exports.register = async (req, res) => {
     });
     res.status(201).send({ message: "Registration successful", accessToken });
   } catch (err) {
-    console.error("Error during registration:", err); 
+    console.error("Error during registration:", err);
     res.status(500).send({ message: "Internal server error" });
   }
 };
@@ -124,6 +124,19 @@ exports.logout = async (req, res) => {
     res.status(200).send({ message: "Logout successful" });
   } catch (err) {
     res.status(500).send({ message: "Internal server error" });
+  }
+};
+
+//get user details
+exports.getDetails = async (req, res) => {
+  try {    
+    const user = await User.findById(req.decoded.userId).select("-pin -refreshToken");
+    if (!user) return res.send({ message: "User not found" });
+    // console.log(user);
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("Error fetching user details:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
