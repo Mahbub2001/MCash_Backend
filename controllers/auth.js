@@ -3,31 +3,44 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
 exports.register = async (req, res) => {
-  const { name, mobile, email, pin, nid, role } = req.body;
-
   try {
+    const { name, mobile, email, pin, nid, role } = req.body;
+    if (!name || !mobile || !email || !pin || !nid || !role) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    if (!/^\d{5}$/.test(pin)) {
+      return res.status(400).json({ message: "PIN must be exactly 5 digits" });
+    }
     const existingUser = await User.findOne({
       $or: [{ mobile }, { email }, { nid }],
     });
+
     if (existingUser) {
       return res
         .status(400)
-        .send({ message: "Mobile, email, or NID already exists" });
+        .json({ message: "Mobile, email, or NID already exists" });
     }
 
-    const hashedPin = await bcrypt.hash(pin, 10);
+    // let hashedPin;
+    // try {
+    //   hashedPin = await bcrypt.hash(pin, 10);
+    // } catch (hashError) {
+    //   console.error("Error hashing PIN:", hashError);
+    //   return res.status(500).json({ message: "Error processing credentials" });
+    // }
     let balance = 0;
     if (role === "user") {
       balance = 40;
     } else if (role === "agent") {
       balance = 100000;
+    } else if (role !== "admin") {
+      return res.status(400).json({ message: "Invalid role specified" });
     }
-
     const user = new User({
       name,
       mobile,
       email,
-      pin: hashedPin,
+      pin,
       nid,
       role,
       balance,
@@ -35,35 +48,51 @@ exports.register = async (req, res) => {
     });
 
     await user.save();
-
-    const { accessToken, refreshToken } = generateTokens(user._id);
-
+    let accessToken, refreshToken;
+    try {
+      ({ accessToken, refreshToken } = generateTokens(user._id));
+    } catch (tokenError) {
+      console.error("Error generating tokens:", tokenError);
+      return res.status(500).json({ message: "Token generation failed" });
+    }
     user.refreshToken = refreshToken;
     await user.save();
+    res.cookie("accessToken", accessToken, {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
 
-    res.cookie("accessToken", accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000 });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    res.status(201).send({ message: "Registration successful", accessToken });
+
+    res.status(201).json({ message: "Registration successful", accessToken });
   } catch (err) {
-    console.error("Error during registration:", err);
-    res.status(500).send({ message: "Internal server error" });
+    console.error("Unexpected error during registration:", err);
+
+    if (err.code === 11000) {
+      return res.status(400).json({
+        message: `Duplicate field: ${Object.keys(err.keyPattern).join(", ")}`,
+      });
+    }
+
+    res.status(500).json({ message: "Internal server error" });
   }
 };
-exports.login = async (req, res) => {
-  const { mobile, pin } = req.body;
 
+exports.login = async (req, res) => {
+  const { mobile, pin } = req.body;    
   try {
     const user = await User.findOne({ mobile });
-
     if (!user) {
       return res.status(404).send({ message: "User not found" });
     }
-
+    
     const isPinValid = await bcrypt.compare(pin, user.pin);
     if (!isPinValid) {
       return res.status(400).send({ message: "Invalid credentials" });
@@ -85,7 +114,12 @@ exports.login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.cookie("accessToken", accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000 });
+    res.cookie("accessToken", accessToken, {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -129,10 +163,12 @@ exports.logout = async (req, res) => {
 
 //get user details
 exports.getDetails = async (req, res) => {
-  try {    
-    const user = await User.findById(req.decoded.userId).select("-pin -refreshToken");
+  // console.log("inside");
+  try {
+    const user = await User.findById(req?.decoded?.userId).select(
+      "-pin -refreshToken"
+    );
     if (!user) return res.send({ message: "User not found" });
-    // console.log(user);
     res.status(200).json(user);
   } catch (err) {
     console.error("Error fetching user details:", err);

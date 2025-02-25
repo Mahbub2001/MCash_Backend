@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
-const renewToken = (req, res) => {
+const renewToken = (req, res) => {  
   const refreshToken = req.cookies.refreshToken;
   let exist = false;
 

@@ -4,6 +4,10 @@ const renewToken = require('../utils/renewToken');
 const verifyJWT = (req, res, next) => {
   const accessToken = req.cookies.accessToken;
 
+  if(!accessToken && !req.cookies.refreshToken) {
+    return res.send({ valid: false, message: "Login first" });
+  }
+
   if (!accessToken) {
     if (renewToken(req, res)) {
       next();

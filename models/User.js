@@ -1,53 +1,50 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     mobile: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    pin: { 
-      type: String, 
+    pin: {
+      type: String,
       required: true,
-      validate: {
-        validator: function (pin) {
-          return pin.length >= 4; 
-        },
-        message: 'PIN must be at least 4 digits long',
-      },
+      minlength: 5,
     },
     nid: { type: String, required: true, unique: true },
     balance: { type: Number, default: 0 },
-    role: { 
-      type: String, 
-      enum: ['user', 'agent', 'admin'], 
-      default: 'user' 
+    role: {
+      type: String,
+      enum: ["user", "agent", "admin"],
+      default: "user",
     },
     isBlocked: { type: Boolean, default: false },
-    isApproved: { 
-      type: Boolean, 
-      default: function() {
-        return this.role === 'user'; 
-      } 
+    isApproved: {
+      type: Boolean,
+      default: function () {
+        return this.role === "user";
+      },
     },
-    refreshToken: { 
-      type: String, 
+    refreshToken: {
+      type: String,
       default: null,
-      index: true, 
+      index: true,
     },
-    transactions: [{ 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Transaction' 
-    }],
+    transactions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Transaction",
+      },
+    ],
   },
-  { timestamps: true } 
+  { timestamps: true }
 );
 
-userSchema.pre('save', async function (next) {
-  if (this.isModified('pin')) {
+userSchema.pre("save", async function (next) {
+  if (this.isModified("pin")) {
     this.pin = await bcrypt.hash(this.pin, 10);
   }
   next();
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);
