@@ -127,6 +127,22 @@ exports.logout = async (req, res) => {
   }
 };
 
+exports.getUserDetails = async (req, res) => {
+  const userId = req.decoded.id; 
+
+  try {
+    const user = await User.findById(userId).select("-pin -refreshToken");
+
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    res.status(200).send(user);
+  } catch (err) {
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
+
 // exports.refreshToken = async (req, res) => {
 //   const refreshToken = req.cookies.refreshToken;
 
