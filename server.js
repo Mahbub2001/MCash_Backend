@@ -7,7 +7,14 @@ const cookieParser = require('cookie-parser');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:3000", // Allow only your frontend origin
+  credentials: true, // Allow credentials (cookies)
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allowed HTTP methods
+  allowedHeaders: "Content-Type,Authorization", // Allowed headers
+};
+
+app.use(cors(corsOptions)); 
 app.use(express.json());
 app.use(cookieParser());
 

@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
     const hashedPin = await bcrypt.hash(pin, 10);
     let balance = 0;
     if (role === "user") {
-      balance = 40; 
+      balance = 40;
     } else if (role === "agent") {
       balance = 100000;
     }
@@ -50,10 +50,10 @@ exports.register = async (req, res) => {
     });
     res.status(201).send({ message: "Registration successful", accessToken });
   } catch (err) {
+    console.error("Error during registration:", err); 
     res.status(500).send({ message: "Internal server error" });
   }
 };
-
 exports.login = async (req, res) => {
   const { mobile, pin } = req.body;
 
@@ -122,22 +122,6 @@ exports.logout = async (req, res) => {
     });
 
     res.status(200).send({ message: "Logout successful" });
-  } catch (err) {
-    res.status(500).send({ message: "Internal server error" });
-  }
-};
-
-exports.getUserDetails = async (req, res) => {
-  const userId = req.decoded.id; 
-
-  try {
-    const user = await User.findById(userId).select("-pin -refreshToken");
-
-    if (!user) {
-      return res.status(404).send({ message: "User not found" });
-    }
-
-    res.status(200).send(user);
   } catch (err) {
     res.status(500).send({ message: "Internal server error" });
   }
