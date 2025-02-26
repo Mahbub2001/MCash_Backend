@@ -87,3 +87,53 @@ exports.getPendingAgents = async (req, res) => {
     res.status(500).send({ message: "Internal server error" });
   }
 };
+
+
+exports.approveWithdrawalRequest = async (req, res) => {
+  const { agentId, withdrawId, action } = req.body;
+
+  try {
+    const agent = await User.findById(agentId);
+
+    if (!agent || agent.role !== 'agent') {
+      return res.status(404).send({ message: "Agent not found" });
+    }
+    const request = agent.requestWithDraw.id(withdrawId);
+
+    if (!request) {
+      return res.status(404).send({ message: "Withdrawal request not found" });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(400).send({ message: "Request already processed" });
+    }
+
+    if (action === 'approve') {
+      if (agent.agent_income < request.amount) {
+        return res.status(400).send({ message: "Insufficient agent income" });
+      }
+      agent.agent_income -= request.amount;
+      // agent.balance += request.amount;
+      const transaction = new Transaction({
+        sender: agentId,
+        receiver: agentId, 
+        amount: request.amount,
+        type: 'agent-withdraw'
+      });
+      await transaction.save();
+      agent.transactions.push(transaction._id);
+      request.status = 'approved';
+    } else if (action === 'reject') {
+      request.status = 'rejected';
+    } else {
+      return res.status(400).send({ message: "Invalid action" });
+    }
+
+    await agent.save();
+
+    res.status(200).send({ message: `Withdrawal request ${action}d successfully` });
+  } catch (err) {
+    console.error("Error in approveWithdrawalRequest:", err);
+    res.status(500).send({ message: "Internal server error" });
+  }
+};

@@ -93,3 +93,27 @@ exports.getTransactionHistory = async (req, res) => {
     res.status(500).send({ message: "Internal server error" });
   }
 };
+
+exports.requestWithDraw = async (req, res) => {
+  const { amount } = req.body;
+  const agentId = req.decoded.userId;
+
+  try {
+    const agent = await User.findById(agentId);
+
+    if (!agent || agent.role !== 'agent') {
+      return res.status(404).send({ message: "Agent not found" });
+    }
+    if (agent.agent_income < amount) {
+      return res.status(400).send({ message: "Insufficient agent income" });
+    }
+
+    agent.withdrawRequests.push({ amount, status: 'pending' });
+    await agent.save();
+
+    res.status(200).send({ message: "Withdrawal request submitted successfully" });
+  } catch (err) {
+    console.error("Error in requestRecharge:", err);
+    res.status(500).send({ message: "Internal server error" });
+  }
+};

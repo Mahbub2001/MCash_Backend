@@ -13,5 +13,6 @@ router.post('/add-money', adminController.addMoneyToAgent);
 router.get('/pending-agents', adminController.getPendingAgents);
 router.get('/transactions', adminController.getAllTransactions);
 router.get('/agent-req', adminController.getPendingAgents);
+router.post('/approve-withdraw', adminController.approveWithdrawalRequest);
 
 module.exports = router;

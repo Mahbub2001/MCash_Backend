@@ -25,7 +25,7 @@ const transactionSchema = new mongoose.Schema({
   },
   type: { 
     type: String, 
-    enum: ['send', 'cash-in', 'cash-out', 'agent-income'], 
+    enum: ['send', 'cash-in', 'cash-out', 'agent-income','agent-withdraw'], 
     required: true 
   },
   timestamp: { 
