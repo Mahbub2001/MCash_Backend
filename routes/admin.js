@@ -19,6 +19,8 @@ router.get('/user-transactions/:userId', adminController.getAdminUserTransaction
 router.get('/users', adminController.getAllUsers);
 router.get('/pending-money-request', adminController.getPendingAddMoneyRequests);
 router.get('/pending-withdraw-request', adminController.getPendingWithdrawMoneyRequests);
+router.get('/user-transactions/:userId', adminController.getUserTransactions);
+router.get('/search-users', adminController.searchUsersByPhone);
 
 
 module.exports = router;

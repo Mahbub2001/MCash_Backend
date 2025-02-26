@@ -225,3 +225,33 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).send({ message: "Internal server error" });
   }
 };
+
+exports.getUserTransactions = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const transactions = await Transaction.find({
+      $or: [{ sender: userId }, { receiver: userId }]
+    })
+      .populate('sender receiver', 'name mobile')
+      .sort({ timestamp: -1 });
+
+    res.status(200).send(transactions);
+  } catch (error) {
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
+
+exports.searchUsersByPhone = async (req, res) => {
+  const { phone } = req.query;
+
+  try {
+    const users = await User.find(
+      { mobile: { $regex: phone, $options: 'i' } },
+      'name mobile role balance agent_income isBlocked'
+    );
+    res.status(200).send(users);
+  } catch (error) {
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
