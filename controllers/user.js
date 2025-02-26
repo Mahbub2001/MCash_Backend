@@ -11,7 +11,7 @@ exports.sendMoney = async (req, res) => {
   try {
     const sender = await User.findById(senderId);
     const receiver = await User.findOne({ mobile: receiverPhone });
-    const admin = await User.findOne({ role: 'admin' });
+    const admin = await User.findOne({ role: "admin" });
 
     if (!receiver) {
       return res.status(404).send({ message: "Receiver not found" });
@@ -30,7 +30,7 @@ exports.sendMoney = async (req, res) => {
     if (parsedAmount > 100) {
       fee = 5;
     }
-    sender.balance -= (parsedAmount + fee);
+    sender.balance -= parsedAmount + fee;
     await sender.save();
 
     receiver.balance += parsedAmount;
@@ -45,7 +45,7 @@ exports.sendMoney = async (req, res) => {
       receiver: receiver._id,
       amount: parsedAmount,
       fee,
-      type: 'send'
+      type: "send",
     });
     await transaction.save();
 
@@ -66,11 +66,12 @@ exports.sendMoney = async (req, res) => {
 exports.cashOut = async (req, res) => {
   const { agentPhone, amount, pin } = req.body;
   const userId = req.decoded.userId;
+  const parsedAmount = parseInt(amount);
 
   try {
     const user = await User.findById(userId);
-    const agent = await User.findOne({ mobile: agentPhone, role: 'agent' });
-    const admin = await User.findOne({ role: 'admin' });
+    const agent = await User.findOne({ mobile: agentPhone, role: "agent" });
+    const admin = await User.findOne({ role: "admin" });
 
     if (!agent) {
       return res.status(404).send({ message: "Agent not found" });
@@ -81,28 +82,31 @@ exports.cashOut = async (req, res) => {
       return res.status(400).send({ message: "Invalid PIN" });
     }
 
-    if (user.balance < amount) {
+    const adminFee = parsedAmount * 0.005;
+    const agentFee = parsedAmount * 0.01;
+
+    if (user.balance < parsedAmount + adminFee + agentFee) {
       return res.status(400).send({ message: "Insufficient balance" });
     }
-
-    const fee = amount * 0.015;
-
-    user.balance -= (amount + fee);
+    user.balance -= parsedAmount + adminFee + agentFee;
     await user.save();
 
-    agent.balance += amount;
+    agent.balance += parsedAmount;
+    agent.agent_income += agentFee;
     await agent.save();
 
     if (admin) {
-      admin.balance += fee;
+      admin.balance += adminFee;
       await admin.save();
     }
+
     const transaction = new Transaction({
       sender: userId,
       receiver: agent._id,
-      amount,
-      fee,
-      type: 'cash-out'
+      amount: parsedAmount,
+      adminFee,
+      agentFee,
+      type: "cash-out",
     });
     await transaction.save();
 
@@ -112,8 +116,10 @@ exports.cashOut = async (req, res) => {
     agent.transactions.push(transaction._id);
     await agent.save();
 
-    admin.transactions.push(transaction._id);
-    await admin.save();
+    if (admin) {
+      admin.transactions.push(transaction._id);
+      await admin.save();
+    }
 
     res.status(200).send({ message: "Cash-out successful", transaction });
   } catch (err) {

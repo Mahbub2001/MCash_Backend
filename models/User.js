@@ -18,6 +18,13 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "agent", "admin"],
       default: "user",
     },
+    agent_income: {
+      type: Number,
+      default: 0,
+      required: function () {
+        return this.role === "agent";
+      },
+    },
     isBlocked: { type: Boolean, default: false },
     isApproved: {
       type: Boolean,
