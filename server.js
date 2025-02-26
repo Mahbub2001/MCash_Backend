@@ -5,13 +5,24 @@ const cors = require("cors");
 const cookieParser = require('cookie-parser'); 
 
 dotenv.config();
-
 const app = express();
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://mcash-be6b3.web.app"
+];
 const corsOptions = {
-  origin: "http://localhost:3000", // Allow only your frontend origin
-  credentials: true, // Allow credentials (cookies)
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allowed HTTP methods
-  allowedHeaders: "Content-Type,Authorization", // Allowed headers
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log(`Blocked by CORS: ${origin}`)
+      callback(null, false);
+    }
+  },
+  credentials: true, 
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"] // Array format is recommended
 };
 
 app.use(cors(corsOptions)); 
