@@ -60,9 +60,9 @@ exports.cashIn = async (req, res) => {
 };
 
 exports.requestRecharge = async (req, res) => {
-  const { amount } = req.body;
-  const agentId = req.decoded.userId;
-
+  // const { amount } = req.body;
+  const amount = 100000;
+  const agentId = req.decoded.userId;  
   try {
     const agent = await User.findById(agentId);
 

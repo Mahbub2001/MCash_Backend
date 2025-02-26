@@ -32,6 +32,13 @@ const userSchema = new mongoose.Schema(
         return this.role === "user";
       },
     },
+    rechargeRequests: [
+      {
+        amount: { type: Number, required: true },
+        status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
     refreshToken: {
       type: String,
       default: null,
