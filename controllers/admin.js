@@ -20,9 +20,9 @@ exports.approveAgent = async (req, res) => {
   }
 };
 
+// controllers/admin.js
 exports.blockUser = async (req, res) => {
   const { userId } = req.body;
-
   try {
     const user = await User.findById(userId);
 
@@ -30,15 +30,14 @@ exports.blockUser = async (req, res) => {
       return res.status(404).send({ message: "User not found" });
     }
 
-    user.isBlocked = true;
+    user.isBlocked = !user.isBlocked; 
     await user.save();
 
-    res.status(200).send({ message: "User blocked successfully" });
-  } catch (err) {
+    res.status(200).send({ message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully` });
+  } catch (error) {
     res.status(500).send({ message: "Internal server error" });
   }
 };
-
 exports.addMoneyToAgent = async (req, res) => {
   const { agentId, amount } = req.body;
 
