@@ -6,7 +6,7 @@ const verifyAdmin = async (req, res, next) => {
     return res.status(401).send({ message: "Unauthorized: Token is missing or invalid" });
   }
 
-  const userId = req.decoded.id; 
+  const userId = req.decoded.userId; 
 
   try {
     const user = await User.findById(userId).select('role');
