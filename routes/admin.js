@@ -10,9 +10,11 @@ router.use(verifyAdmin);
 router.post('/approve-agent', adminController.approveAgent);
 router.post('/block-user', adminController.blockUser);
 router.post('/add-money', adminController.addMoneyToAgent);
+router.post('/approve-withdraw', adminController.approveWithdrawalRequest);
 router.get('/pending-agents', adminController.getPendingAgents);
 router.get('/transactions', adminController.getAllTransactions);
 router.get('/agent-req', adminController.getPendingAgents);
-router.post('/approve-withdraw', adminController.approveWithdrawalRequest);
+router.get('/user-transactions/:userId', adminController.getAdminUserTransactions);
+router.get('/users', adminController.getAllUsers);
 
 module.exports = router;

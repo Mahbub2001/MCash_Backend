@@ -137,3 +137,27 @@ exports.approveWithdrawalRequest = async (req, res) => {
     res.status(500).send({ message: "Internal server error" });
   }
 };
+
+exports.getAdminUserTransactions = async (req, res) => {
+  const { userId } = req.params;   
+  try {
+    const transactions = await Transaction.find({
+      $or: [{ sender: userId }, { receiver: userId }]
+    })
+      .populate('sender receiver', 'name mobile') 
+      .sort({ timestamp: -1 }); 
+    res.status(200).send(transactions);
+  } catch (err) {
+    console.error("Error in getUserTransactions:", err);
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: { $ne: "admin" } }); 
+    res.status(200).send(users);
+  } catch (err) {
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
