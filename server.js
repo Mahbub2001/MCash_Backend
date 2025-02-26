@@ -14,7 +14,7 @@ const corsOptions = {
   allowedHeaders: "Content-Type,Authorization", // Allowed headers
 };
 
-app.use(cors(corsOptions)); 
+app.use(cors()); 
 app.use(express.json());
 app.use(cookieParser());
 
