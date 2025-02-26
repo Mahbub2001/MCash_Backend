@@ -1,6 +1,6 @@
 const User = require('../models/User');
 
-const verifyAdmin = async (req, res, next) => {
+const verifyAgent = async (req, res, next) => {
   if (!req.decoded) {
     return res.status(401).send({ message: "Unauthorized: Token is missing or invalid" });
   }
@@ -14,15 +14,15 @@ const verifyAdmin = async (req, res, next) => {
       return res.status(404).send({ message: "User not found" });
     }
 
-    if (user.role !== "admin") {
-      return res.status(403).send({ message: "Forbidden: You do not have admin privileges" });
+    if (user.role !== "agent") {
+      return res.status(403).send({ message: "Forbidden: You do not have agent privileges" });
     }
 
     next(); 
   } catch (err) {
-    console.error("Error in verifyAdmin middleware:", err); 
+    console.error("Error in verifyAgent middleware:", err); 
     res.status(500).send({ message: "Internal server error" });
   }
 };
 
-module.exports = verifyAdmin;
+module.exports = verifyAgent;
