@@ -1,10 +1,12 @@
-const User = require('../models/User');
-const Transaction = require('../models/Transaction');
-const bcrypt = require('bcryptjs');
+const User = require("../models/User");
+const Transaction = require("../models/Transaction");
+const bcrypt = require("bcryptjs");
 
 exports.sendMoney = async (req, res) => {
   const { receiverPhone, amount, pin } = req.body;
-  const senderId = req.decoded.id;
+  const senderId = req.decoded.userId;
+
+  const parsedAmount = parseInt(amount);
 
   try {
     const sender = await User.findById(senderId);
@@ -20,41 +22,50 @@ exports.sendMoney = async (req, res) => {
       return res.status(400).send({ message: "Invalid PIN" });
     }
 
-    if (sender.balance < amount) {
+    if (sender.balance < parsedAmount) {
       return res.status(400).send({ message: "Insufficient balance" });
     }
+
     let fee = 0;
-    if (amount > 100) {
+    if (parsedAmount > 100) {
       fee = 5;
     }
-    sender.balance -= (amount + fee);
+    sender.balance -= (parsedAmount + fee);
     await sender.save();
-    receiver.balance += amount;
+
+    receiver.balance += parsedAmount;
     await receiver.save();
 
     if (admin) {
       admin.balance += fee;
       await admin.save();
     }
-
     const transaction = new Transaction({
       sender: senderId,
       receiver: receiver._id,
-      amount,
+      amount: parsedAmount,
       fee,
       type: 'send'
     });
     await transaction.save();
+
+    sender.transactions.push(transaction._id);
+    await sender.save();
+
+    receiver.transactions.push(transaction._id);
+    await receiver.save();
+
+    admin.transactions.push(transaction._id);
+    await admin.save();
 
     res.status(200).send({ message: "Money sent successfully", transaction });
   } catch (err) {
     res.status(500).send({ message: "Internal server error" });
   }
 };
-
 exports.cashOut = async (req, res) => {
   const { agentPhone, amount, pin } = req.body;
-  const userId = req.decoded.id;
+  const userId = req.decoded.userId;
 
   try {
     const user = await User.findById(userId);
@@ -64,16 +75,21 @@ exports.cashOut = async (req, res) => {
     if (!agent) {
       return res.status(404).send({ message: "Agent not found" });
     }
+
     const isPinValid = await bcrypt.compare(pin, user.pin);
     if (!isPinValid) {
       return res.status(400).send({ message: "Invalid PIN" });
     }
+
     if (user.balance < amount) {
       return res.status(400).send({ message: "Insufficient balance" });
     }
+
     const fee = amount * 0.015;
+
     user.balance -= (amount + fee);
     await user.save();
+
     agent.balance += amount;
     await agent.save();
 
@@ -90,31 +106,39 @@ exports.cashOut = async (req, res) => {
     });
     await transaction.save();
 
+    user.transactions.push(transaction._id);
+    await user.save();
+
+    agent.transactions.push(transaction._id);
+    await agent.save();
+
+    admin.transactions.push(transaction._id);
+    await admin.save();
+
     res.status(200).send({ message: "Cash-out successful", transaction });
   } catch (err) {
     res.status(500).send({ message: "Internal server error" });
   }
 };
 exports.getBalance = async (req, res) => {
-  const userId = req.decoded.id;
+  const userId = req.decoded.userId;
 
   try {
-    const user = await User.findById(userId).select('balance -_id');
+    const user = await User.findById(userId).select("balance -_id");
     res.status(200).send(user);
   } catch (err) {
     res.status(500).send({ message: "Internal server error" });
   }
 };
 exports.getTransactionHistory = async (req, res) => {
-  const userId = req.decoded.id;
-
+  const userId = req.decoded.userId;
   try {
     const transactions = await Transaction.find({
-      $or: [{ sender: userId }, { receiver: userId }]
+      $or: [{ sender: userId }, { receiver: userId }],
     })
-      .populate('sender receiver', 'name mobile')
+      .populate("sender receiver", "name mobile")
       .sort({ timestamp: -1 })
-      .limit(100); 
+      .limit(100);
 
     res.status(200).send(transactions);
   } catch (err) {
