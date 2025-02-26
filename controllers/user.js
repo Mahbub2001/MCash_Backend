@@ -9,6 +9,7 @@ exports.sendMoney = async (req, res) => {
   try {
     const sender = await User.findById(senderId);
     const receiver = await User.findOne({ mobile: receiverPhone });
+    const admin = await User.findOne({ role: 'admin' });
 
     if (!receiver) {
       return res.status(404).send({ message: "Receiver not found" });
@@ -30,6 +31,11 @@ exports.sendMoney = async (req, res) => {
     await sender.save();
     receiver.balance += amount;
     await receiver.save();
+
+    if (admin) {
+      admin.balance += fee;
+      await admin.save();
+    }
 
     const transaction = new Transaction({
       sender: senderId,
@@ -53,6 +59,7 @@ exports.cashOut = async (req, res) => {
   try {
     const user = await User.findById(userId);
     const agent = await User.findOne({ mobile: agentPhone, role: 'agent' });
+    const admin = await User.findOne({ role: 'admin' });
 
     if (!agent) {
       return res.status(404).send({ message: "Agent not found" });
@@ -70,6 +77,10 @@ exports.cashOut = async (req, res) => {
     agent.balance += amount;
     await agent.save();
 
+    if (admin) {
+      admin.balance += fee;
+      await admin.save();
+    }
     const transaction = new Transaction({
       sender: userId,
       receiver: agent._id,
