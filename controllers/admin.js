@@ -60,7 +60,6 @@ exports.addMoneyToAgent = async (req, res) => {
   }
 };
 
-// get agents of pending add money request
 exports.getPendingAddMoneyRequests = async (req, res) => {
   try {
     const agentsWithPendingRequests = await User.find({
@@ -139,6 +138,21 @@ exports.getPendingAgents = async (req, res) => {
   }
 };
 
+exports.getPendingWithdrawMoneyRequests = async (req, res) => {
+  try {
+    const agentsWithPendingRequests = await User.find({
+      role: "agent",
+      "withdrawRequests.status": "pending",
+    });
+    res.status(200).send(agentsWithPendingRequests);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 exports.approveWithdrawalRequest = async (req, res) => {
   const { agentId, withdrawId, action } = req.body;
 
@@ -148,7 +162,8 @@ exports.approveWithdrawalRequest = async (req, res) => {
     if (!agent || agent.role !== "agent") {
       return res.status(404).send({ message: "Agent not found" });
     }
-    const request = agent.requestWithDraw.id(withdrawId);
+
+    const request = agent.withdrawRequests.id(withdrawId); 
 
     if (!request) {
       return res.status(404).send({ message: "Withdrawal request not found" });
@@ -163,7 +178,6 @@ exports.approveWithdrawalRequest = async (req, res) => {
         return res.status(400).send({ message: "Insufficient agent income" });
       }
       agent.agent_income -= request.amount;
-      // agent.balance += request.amount;
       const transaction = new Transaction({
         sender: agentId,
         receiver: agentId,
@@ -181,9 +195,7 @@ exports.approveWithdrawalRequest = async (req, res) => {
 
     await agent.save();
 
-    res
-      .status(200)
-      .send({ message: `Withdrawal request ${action}d successfully` });
+    res.status(200).send({ message: `Withdrawal request ${action}d successfully` });
   } catch (err) {
     console.error("Error in approveWithdrawalRequest:", err);
     res.status(500).send({ message: "Internal server error" });

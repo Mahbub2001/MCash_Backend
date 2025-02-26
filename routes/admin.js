@@ -18,5 +18,7 @@ router.get('/agent-req', adminController.getPendingAgents);
 router.get('/user-transactions/:userId', adminController.getAdminUserTransactions);
 router.get('/users', adminController.getAllUsers);
 router.get('/pending-money-request', adminController.getPendingAddMoneyRequests);
+router.get('/pending-withdraw-request', adminController.getPendingWithdrawMoneyRequests);
+
 
 module.exports = router;
