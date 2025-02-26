@@ -75,3 +75,15 @@ exports.getAllTransactions = async (req, res) => {
     res.status(500).send({ message: "Internal server error" });
   }
 };
+
+exports.getPendingAgents = async (req, res) => {
+  try {
+    const pendingAgents = await User.find({ 
+      role: 'agent', 
+      isApproved: false 
+    });
+    res.status(200).send(pendingAgents);
+  } catch (err) {
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
