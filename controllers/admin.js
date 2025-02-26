@@ -92,8 +92,11 @@ exports.approveMoneyRequest = async (req, res) => {
       return res.status(400).send({ message: "Invalid or already processed request" });
     }
 
+    console.log(request);
+    
+
     agent.balance += request.amount;
-    request.status = "confirmed";
+    request.status = "approved";
     await agent.save();
 
     res.status(200).send({ message: "Money request approved successfully" });
