@@ -11,10 +11,12 @@ router.post('/approve-agent', adminController.approveAgent);
 router.post('/block-user', adminController.blockUser);
 router.post('/add-money', adminController.addMoneyToAgent);
 router.post('/approve-withdraw', adminController.approveWithdrawalRequest);
+router.post('/approve-money-request', adminController.approveMoneyRequest);
 router.get('/pending-agents', adminController.getPendingAgents);
 router.get('/transactions', adminController.getAllTransactions);
 router.get('/agent-req', adminController.getPendingAgents);
 router.get('/user-transactions/:userId', adminController.getAdminUserTransactions);
 router.get('/users', adminController.getAllUsers);
+router.get('/pending-money-request', adminController.getPendingAddMoneyRequests);
 
 module.exports = router;
